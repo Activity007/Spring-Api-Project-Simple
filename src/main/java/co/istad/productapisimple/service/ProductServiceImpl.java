@@ -1,38 +1,102 @@
 package co.istad.productapisimple.service;
 
+
+import co.istad.productapisimple.dto.CategoryRequest;
+import co.istad.productapisimple.dto.ProductRequest;
 import co.istad.productapisimple.dto.ProductResponse;
+import co.istad.productapisimple.dto.UpdateProductRequest;
 import co.istad.productapisimple.entity.Product;
 import co.istad.productapisimple.repository.ProductRepository;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.support.DefaultLifecycleProcessor;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
-
+@Service
 @RequiredArgsConstructor
+@Slf4j
 public class ProductServiceImpl implements ProductService {
+    // inject the repository here
     private final ProductRepository productRepository;
+    private final DefaultLifecycleProcessor defaultLifecycleProcessor;
+    private Integer nextId = 1004;
+    // mapToEntity
+    private Product mapToEntity(ProductRequest request) {
+        Product product = new Product();
+        product.setName(request.name());
+        product.setDescription(request.description());
+        product.setPrice(request.price());
+
+        return product;
+    }
+    // mapToResponse -> convert Entity to Response
+    private ProductResponse mapToResponse(Product product) {
+        return new ProductResponse(
+                product.getId(),
+                product.getName(),
+                product.getDescription(),
+                product.getPrice()
+        );
+    }
 
     @Override
-    public ProductResponse createProduct(Product product) {
-        return null;
+    public ProductResponse createProduct(@Valid ProductRequest request) {
+        // create entity product from the request
+        var product = mapToEntity(request);
+        // set static userID
+        product.setUserId(1);
+        product.setId(nextId++);
+        return mapToResponse(productRepository.createProduct(product));
+
     }
 
     @Override
     public List<ProductResponse> findAllProducts() {
-        return List.of();
+        return productRepository.getAllProducts()
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
     }
 
     @Override
-    public ProductResponse updateProduct(Product product) {
-        return null;
+    public ProductResponse findProductById(Integer id) {
+        var product =   productRepository.findProductById(id);
+        if(product == null) {
+            // throw not found exception, but skip it for now
+            log.info("Product with id {} not found", id);
+            return null;
+        }
+        return mapToResponse(product);
     }
 
     @Override
-    public boolean deleteProduct(int id) {
+    public ProductResponse updateProduct(Integer id , UpdateProductRequest request) {
+        // find existing product
+        var existingProduct = productRepository.findProductById(id);
+
+        if(existingProduct == null) {
+            log.info("Product with id {} not found", id);
+            // throw exception
+            return null;
+        }
+        if(request.name()!=null)
+            existingProduct.setName(request.name());
+        if(request.description()!=null)
+            existingProduct.setDescription(request.description());
+        if(request.price()!=null)
+            existingProduct.setPrice(request.price());
+        // update product
+        productRepository.updateProduct(existingProduct);
+        return mapToResponse(existingProduct);
+    }
+
+
+    @Override
+    public boolean deleteProduct(Integer id) {
         return false;
     }
 
-    @Override
-    public ProductResponse findProductById(int id) {
-        return null;
-    }
+
 }

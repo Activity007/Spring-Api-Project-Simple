@@ -8,9 +8,9 @@ import lombok.*;
 @ToString
 @Builder
 public class Product {
-    private int id;
+    private Integer id;
     private String name;
     private String description;
-    private float price;
-    private int userId;
+    private Float price;
+    private Integer userId;
 }

@@ -1,16 +1,20 @@
 package co.istad.productapisimple.service;
-
+import co.istad.productapisimple.dto.CategoryRequest;
+import co.istad.productapisimple.dto.ProductRequest;
 import co.istad.productapisimple.dto.ProductResponse;
-import co.istad.productapisimple.entity.Product;
-import org.springframework.stereotype.Service;
+import co.istad.productapisimple.dto.UpdateProductRequest;
+import jakarta.validation.Valid;
+
 
 import java.util.List;
 
-@Service
+// For the loosely coupling design
+// This interface will be implemented by other class
+
 public interface ProductService {
-    ProductResponse createProduct(Product product);
+    ProductResponse createProduct(ProductRequest product);
     List<ProductResponse> findAllProducts();
-    ProductResponse updateProduct(Product product);
-    boolean deleteProduct(int id);
-    ProductResponse findProductById(int id);
+    ProductResponse findProductById(Integer id);
+    ProductResponse updateProduct(Integer id, UpdateProductRequest request);
+    boolean deleteProduct(Integer id);
 }

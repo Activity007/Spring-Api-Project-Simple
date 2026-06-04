@@ -1,9 +1,9 @@
 package co.istad.productapisimple.dto;
 
-public record ProductResponse (
+public record CategoryResponse(
         Integer id,
         String name,
         String description,
-        Float price
+        Boolean isActive
 ) {
 }

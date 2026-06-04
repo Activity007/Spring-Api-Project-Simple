@@ -1,9 +1,8 @@
 package co.istad.productapisimple.dto;
 
-public record ProductResponse (
-        Integer id,
+public record UpdateCategoryRequest(
         String name,
         String description,
-        Float price
+        String isActive
 ) {
 }
