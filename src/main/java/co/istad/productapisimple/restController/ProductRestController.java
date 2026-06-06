@@ -40,5 +40,4 @@ public class ProductRestController {
         return productService.updateProduct(id, request);
     }
 
-
 }

@@ -1,7 +1,6 @@
 package co.istad.productapisimple.service;
 
 
-import co.istad.productapisimple.dto.CategoryRequest;
 import co.istad.productapisimple.dto.ProductRequest;
 import co.istad.productapisimple.dto.ProductResponse;
 import co.istad.productapisimple.dto.UpdateProductRequest;
@@ -62,7 +61,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductResponse findProductById(Integer id) {
-        var product =   productRepository.findProductById(id);
+        var product = productRepository.findProductById(id);
         if(product == null) {
             // throw not found exception, but skip it for now
             log.info("Product with id {} not found", id);
@@ -95,8 +94,13 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public boolean deleteProduct(Integer id) {
-        return false;
+        var product = productRepository.findProductById(id);
+        if (product == null) {
+            log.info("Product with id {} not found for deletion", id);
+            return false;
+        }
+        productRepository.deleteProductById(id);
+        log.info("Product with id {} successfully deleted", id);
+        return true;
     }
-
-
 }

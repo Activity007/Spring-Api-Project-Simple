@@ -2,6 +2,8 @@ package co.istad.productapisimple.service;
 
 import co.istad.productapisimple.dto.CategoryRequest;
 import co.istad.productapisimple.dto.CategoryResponse;
+import co.istad.productapisimple.dto.UpdateCategoryRequest;
+import co.istad.productapisimple.dto.UpdateProductRequest;
 import co.istad.productapisimple.entity.Category;
 import co.istad.productapisimple.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
@@ -48,19 +50,18 @@ public class CategoryServiceImpl implements CategoryService{
     }
 
     @Override
-    public CategoryResponse updateCategory(Integer id, Category category) {
+    public CategoryResponse updateCategory(Integer id, UpdateCategoryRequest categoryRequest) {
         var existingCategory = categoryRepository.findCategoryById(id);
-        if(existingCategory == null) {
-            // throw exception
+
+        if (existingCategory == null) {
             return null;
         }
-        if(category.getName()!=null)
-            existingCategory.setName(category.getName());
-        if(category.getDescription()!=null)
-            existingCategory.setDescription(category.getDescription());
-        if(category.getIsActive()!=null)
-            existingCategory.setIsActive(category.getIsActive());
-        // update product
+        if (categoryRequest.name() != null)
+            existingCategory.setName(categoryRequest.name());
+        if (categoryRequest.description() != null)
+            existingCategory.setDescription(categoryRequest.description());
+        if (categoryRequest.isActive()!= null)
+            existingCategory.setIsActive(Boolean.valueOf(categoryRequest.isActive()));
         categoryRepository.updateCategory(existingCategory);
         return mapToResponse(existingCategory);
     }
@@ -76,6 +77,11 @@ public class CategoryServiceImpl implements CategoryService{
 
     @Override
     public boolean deleteCategory(Integer id) {
-        return false;
+        var existingCategory = categoryRepository.findCategoryById(id);
+        if (existingCategory == null) {
+            return false;
+        }
+        categoryRepository.isDeleteCategory(id);
+        return true;
     }
 }
