@@ -22,6 +22,10 @@ public class ProductRestController {
     public Page<ProductResponse> getProducts(Pageable pageable) {
         return productService.findAllProducts(pageable);
     }
+//    @GetMapping
+//    public  List<ProductResponse> findAllProducts(){
+//        return productService.findAllProducts();
+//    }
 
     // find product by id
     // localhost:8080/api/v1/products/1001
@@ -39,6 +43,10 @@ public class ProductRestController {
     @PatchMapping("/{id}")
     public ProductResponse updateProduct(@PathVariable Integer id, @RequestBody UpdateProductRequest request){
         return productService.updateProduct(id, request);
+    }
+    @DeleteMapping("/{id}")
+    public boolean deleteProduct(@PathVariable Integer id){
+        return productService.deleteProduct(id);
     }
 
 }
