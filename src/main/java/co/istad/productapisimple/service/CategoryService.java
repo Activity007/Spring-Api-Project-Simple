@@ -8,9 +8,13 @@ import co.istad.productapisimple.entity.Category;
 import java.util.List;
 
 public interface CategoryService {
-    CategoryResponse createCategory (CategoryRequest categoryRequest);
-    List<CategoryResponse> findAllCategory();
-    CategoryResponse updateCategory(Integer id, UpdateCategoryRequest categoryRequest);
-    CategoryResponse findCategoryById(Integer id);
-    boolean deleteCategory(Integer id);
+    CategoryResponse createCategory(CategoryRequest request);
+    CategoryResponse updateCategory(CategoryRequest request);
+    void deleteCategory(Integer id);
+    // get all with Pagination ( follow products sample )
+    // soft delete category ( changing the value of isDeleted )
+
+    List<CategoryResponse> findAll();
+    CategoryResponse findById(Integer id);
+    List<CategoryResponse> findByName(String name);
 }

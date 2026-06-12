@@ -4,82 +4,70 @@ package co.istad.productapisimple.service;
 import co.istad.productapisimple.dto.ProductRequest;
 import co.istad.productapisimple.dto.ProductResponse;
 import co.istad.productapisimple.dto.UpdateProductRequest;
-import co.istad.productapisimple.entity.Product;
+import co.istad.productapisimple.mapper.ProductMapper;
 import co.istad.productapisimple.repository.ProductRepository;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.support.DefaultLifecycleProcessor;
+import org.springframework.data.domain.Page;
+
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class ProductServiceImpl implements ProductService {
     // inject the repository here
+    //private final ProductRepositoryOld productRepositoryOld;
     private final ProductRepository productRepository;
-    private final DefaultLifecycleProcessor defaultLifecycleProcessor;
-    private Integer nextId = 1004;
-    // mapToEntity
-    private Product mapToEntity(ProductRequest request) {
-        Product product = new Product();
-        product.setName(request.name());
-        product.setDescription(request.description());
-        product.setPrice(request.price());
-
-        return product;
-    }
-    // mapToResponse -> convert Entity to Response
-    private ProductResponse mapToResponse(Product product) {
-        return new ProductResponse(
-                product.getId(),
-                product.getName(),
-                product.getDescription(),
-                product.getPrice()
-        );
-    }
-
-    @Override
-    public ProductResponse createProduct(@Valid ProductRequest request) {
-        // create entity product from the request
-        var product = mapToEntity(request);
-        // set static userID
-        product.setUserId(1);
-        product.setId(nextId++);
-        return mapToResponse(productRepository.createProduct(product));
-
-    }
+    private final ProductMapper productMapper;
 
     @Override
     public List<ProductResponse> findAllProducts() {
-        return productRepository.getAllProducts()
+        // repository.findAll()
+        return productRepository.findAll()
                 .stream()
-                .map(this::mapToResponse)
+                .map(productMapper::mapToResponse)
                 .toList();
     }
 
     @Override
+    public Page<ProductResponse> findAllProducts(Pageable pageable) {
+        return productRepository.findAll(pageable)
+                .map(productMapper::mapToResponse);
+    }
+
+
+    @Override
+    public ProductResponse createProduct(ProductRequest request) {
+        // create entity product from the request
+        var product = productMapper.mapToProduct(request);
+        // set static userID
+        product.setUserId(1);
+        // insert the data to the table only need to
+        // repository.save(entity) = insert
+        return productMapper.mapToResponse(productRepository.save(product));
+
+    }
+
+
+    @Override
     public ProductResponse findProductById(Integer id) {
-        var product = productRepository.findProductById(id);
-        if(product == null) {
-            // throw not found exception, but skip it for now
-            log.info("Product with id {} not found", id);
-            return null;
-        }
-        return mapToResponse(product);
+        var product =  productRepository.findById(id)
+                .orElseThrow(()-> new NoSuchElementException("Product with ID = "+id+" not found"));
+
+        return productMapper.mapToResponse(product);
     }
 
     @Override
     public ProductResponse updateProduct(Integer id , UpdateProductRequest request) {
         // find existing product
-        var existingProduct = productRepository.findProductById(id);
+        // repository.findById
+        var existingProduct = productRepository.findById(id).orElseThrow(()-> new NoSuchElementException("Product with ID = "+id+" not found"));
 
-        if(existingProduct == null) {
-            log.info("Product with id {} not found", id);
-            // throw exception
-            return null;
-        }
         if(request.name()!=null)
             existingProduct.setName(request.name());
         if(request.description()!=null)
@@ -87,20 +75,25 @@ public class ProductServiceImpl implements ProductService {
         if(request.price()!=null)
             existingProduct.setPrice(request.price());
         // update product
-        productRepository.updateProduct(existingProduct);
-        return mapToResponse(existingProduct);
+        productRepository.save(existingProduct);
+        return productMapper.mapToResponse(existingProduct);
     }
 
 
+
+    // TODO: make it like we delete in the category
     @Override
     public boolean deleteProduct(Integer id) {
-        var product = productRepository.findProductById(id);
-        if (product == null) {
-            log.info("Product with id {} not found for deletion", id);
-            return false;
+        // find if the product exist
+        // if it's we delete it and return true
+        // else return false
+
+        if(productRepository.existsById(id)) {
+            productRepository.deleteById(id);
+            return true;
         }
-        productRepository.deleteProductById(id);
-        log.info("Product with id {} successfully deleted", id);
-        return true;
+        return false;
     }
+
+
 }

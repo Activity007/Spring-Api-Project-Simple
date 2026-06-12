@@ -1,87 +1,67 @@
 package co.istad.productapisimple.service;
 
+import co.istad.productapisimple.advisor.ResourceAlreadyExistException;
 import co.istad.productapisimple.dto.CategoryRequest;
 import co.istad.productapisimple.dto.CategoryResponse;
-import co.istad.productapisimple.dto.UpdateCategoryRequest;
-import co.istad.productapisimple.dto.UpdateProductRequest;
 import co.istad.productapisimple.entity.Category;
+import co.istad.productapisimple.mapper.CategoryMapper;
 import co.istad.productapisimple.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
-public class CategoryServiceImpl implements CategoryService{
+public class CategoryServiceImpl implements CategoryService {
+    private final CategoryMapper categoryMapper;
     private final CategoryRepository categoryRepository;
-    private Integer nextId = 104;
-    private Category mapToEntity(CategoryRequest categoryRequest){
-        Category category = new Category();
-        category.setName(categoryRequest.name());
-        category.setDescription(categoryRequest.description());
-        category.setIsActive(categoryRequest.isActive());
-        return category;
+
+    @Override
+    public CategoryResponse createCategory(CategoryRequest request) {
+        // map from request to entity
+        Category category = categoryMapper.toEntity(request);
+        // derived query
+        if(categoryRepository.existsByName(request.name())){
+            throw new ResourceAlreadyExistException("Category with name = "+request.name()+" already exists");
+        }
+
+        var newCategory = categoryRepository.save(category);
+        return categoryMapper.toResponse(newCategory);
     }
-    private CategoryResponse mapToResponse(Category category){
-        return  new CategoryResponse(
-                category.getId(),
-                category.getName(),
-                category.getDescription(),
-                category.getIsActive()
-        );
+
+    @Override
+    public CategoryResponse updateCategory(CategoryRequest request) {
+        // Partial updates
+        return null;
+    }
+// soft delete
+
+    @Override
+    public void deleteCategory(Integer id) {
+        if(!categoryRepository.existsById(id)) {
+            throw new NoSuchElementException("Category with id = " + id + " does not exist");
+        }
+        categoryRepository.deleteById(id);
 
     }
 
     @Override
-    public CategoryResponse createCategory(CategoryRequest categoryRequest) {
-        var category = mapToEntity(categoryRequest);
-        category.setUserId(1);
-        category.setId(nextId++);
-        return mapToResponse(categoryRepository.createCategory(category));
-    }
-
-    @Override
-    public List<CategoryResponse> findAllCategory() {
-        return categoryRepository.getAllCategory()
+    public List<CategoryResponse> findAll() {
+        return categoryRepository.findAll()
                 .stream()
-                .map(this::mapToResponse)
+                .map(categoryMapper::toResponse)
                 .toList();
     }
 
     @Override
-    public CategoryResponse updateCategory(Integer id, UpdateCategoryRequest categoryRequest) {
-        var existingCategory = categoryRepository.findCategoryById(id);
-
-        if (existingCategory == null) {
-            return null;
-        }
-        if (categoryRequest.name() != null)
-            existingCategory.setName(categoryRequest.name());
-        if (categoryRequest.description() != null)
-            existingCategory.setDescription(categoryRequest.description());
-        if (categoryRequest.isActive()!= null)
-            existingCategory.setIsActive(Boolean.valueOf(categoryRequest.isActive()));
-        categoryRepository.updateCategory(existingCategory);
-        return mapToResponse(existingCategory);
+    public CategoryResponse findById(Integer id) {
+        return null;
     }
 
     @Override
-    public CategoryResponse findCategoryById(Integer id) {
-        var categories = categoryRepository.findCategoryById(id);
-        if (categories == null){
-            return null;
-        }
-        return mapToResponse(categories);
-    }
-
-    @Override
-    public boolean deleteCategory(Integer id) {
-        var existingCategory = categoryRepository.findCategoryById(id);
-        if (existingCategory == null) {
-            return false;
-        }
-        categoryRepository.isDeleteCategory(id);
-        return true;
+    public List<CategoryResponse> findByName(String name) {
+        return List.of();
     }
 }

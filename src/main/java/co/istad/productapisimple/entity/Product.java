@@ -1,16 +1,27 @@
 package co.istad.productapisimple.entity;
 
+import jakarta.persistence.*;
 import lombok.*;
 
-@Data
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
 @ToString
-@Builder
+
+@Entity(name = "product_tbl")
 public class Product {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private String name;
     private String description;
     private Float price;
-    private Integer userId;
+
+    private Integer userId; // user that create the product !
+    // private Integer categoryId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    private Category category;
+
 }
